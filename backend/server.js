@@ -1,11 +1,25 @@
+require("dotenv").config();
+
 const express = require("express");
+const routes = require("./routes");
+const driver = require("./neo4j/driver");
+
 const app = express();
 const port = 3001;
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+app.use(express.json());
+app.use(routes);
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+driver
+  .getServerInfo()
+  .then(() => {
+    console.log("Conexão neo4j estabelecida");
+    app.emit("ready");
+  })
+  .catch((e) => console.error(e));
+
+app.on("ready", () => {
+  app.listen(port, () => {
+    console.log(`Servidor rodando na porta ${port}`);
+  });
 });
