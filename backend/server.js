@@ -3,11 +3,13 @@ require("dotenv").config();
 const express = require("express");
 const routes = require("./routes");
 const driver = require("./neo4j/driver");
+const authenticateToken = require("./middlewares/authenticateToken");
 
 const app = express();
 const port = 3001;
 
 app.use(express.json());
+app.use("/todo", authenticateToken);
 app.use(routes);
 
 driver
