@@ -14,7 +14,8 @@ module.exports.signin = async (req, res, next) => {
   if (!req.body.username || !req.body.password) {
     sendResponse(res, 400, {
       status: "error",
-      message: "Campos obrigatórios não fornecidos",
+      clientMessage: "Campos obrigatórios não fornecidos",
+      serverMessage: "Campos obrigatórios não fornecidos",
     });
     return next();
   }
@@ -29,7 +30,8 @@ module.exports.signin = async (req, res, next) => {
   if (!records.length) {
     sendResponse(res, 404, {
       status: "error",
-      message: "Usuário não encontrado",
+      clientMessage: "Usuário não encontrado",
+      serverMessage: "Usuário não encontrado",
     });
     return next();
   }
@@ -43,19 +45,31 @@ module.exports.signin = async (req, res, next) => {
         const token = generateAccessToken(username);
         sendResponse(res, 200, {
           status: "sucess",
-          message: "Login efetuado",
+          clientMessage: "Login efetuado",
+          serverMessage: "Login efetuado",
           token,
+          user: { username },
         });
       } else {
         sendResponse(res, 401, {
           status: "error",
-          message: "Credenciais inválidas",
+          clientMessage: "Credenciais inválidas",
+          serverMessage: "Credenciais inválidas",
         });
       }
       return next();
     })
     .catch((e) => {
-      sendResponse(res, 500, { status: "error", message: e.message }, res);
+      sendResponse(
+        res,
+        500,
+        {
+          status: "error",
+          serverMessage: e.message,
+          clientMessage: "Ocorreu um erro no servidor",
+        },
+        res
+      );
       return next();
     });
 };
@@ -65,7 +79,8 @@ module.exports.signup = async (req, res, next) => {
     if (!req.body.username || !req.body.password || !req.body.confirmPassword) {
       sendResponse(res, 400, {
         status: "error",
-        message: "Campos obrigatórios não fornecidos",
+        clientMessage: "Campos obrigatórios não fornecidos",
+        serverMessage: "Campos obrigatórios não fornecidos",
       });
       return next();
     }
@@ -75,7 +90,9 @@ module.exports.signup = async (req, res, next) => {
     if (!username.match(/^[a-z_]+$/)) {
       sendResponse(res, 400, {
         status: "error",
-        message:
+        clientMessage:
+          "Somente letras minúsculas e underline permitidos no nome de usuário",
+        serverMessage:
           "Somente letras minúsculas e underline permitidos no nome de usuário",
       });
       return next();
@@ -84,7 +101,8 @@ module.exports.signup = async (req, res, next) => {
     if (password.length < 6) {
       sendResponse(res, 400, {
         status: "error",
-        message: "A senha deve possuir no mínimo 6 caracteres",
+        clientMessage: "A senha deve possuir no mínimo 6 caracteres",
+        serverMessage: "A senha deve possuir no mínimo 6 caracteres",
       });
       return next();
     }
@@ -92,7 +110,8 @@ module.exports.signup = async (req, res, next) => {
     if (password !== confirmPassword) {
       sendResponse(res, 400, {
         status: "error",
-        message: "Senha e confirmação de senha são diferentes",
+        clientMessage: "Senha e confirmação de senha são diferentes",
+        serverMessage: "Senha e confirmação de senha são diferentes",
       });
       return next();
     }
@@ -105,7 +124,8 @@ module.exports.signup = async (req, res, next) => {
     if (records.length) {
       sendResponse(res, 409, {
         status: "error",
-        message: "Usuário com esse nome já existe",
+        clientMessage: "Usuário com esse nome já existe",
+        serverMessage: "Usuário com esse nome já existe",
       });
       return next();
     }
@@ -124,13 +144,51 @@ module.exports.signup = async (req, res, next) => {
 
     sendResponse(res, 200, {
       status: "success",
-      message: "Usuário criado com sucesso",
+      clientMessage: "Usuário criado com sucesso",
+      serverMessage: "Usuário criado com sucesso",
       token,
+      user: { username },
     });
     return next();
   } catch (e) {
     console.error(e);
-    sendResponse(res, 500, { status: "error", message: e.message });
+    sendResponse(res, 500, {
+      status: "error",
+      serverMessage: e.message,
+      clientMessage: "Ocorreu um erro no servidor",
+    });
+    return next();
+  }
+};
+
+module.exports.isLoggedIn = async (req, res, next) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (token == null) {
+      sendResponse(res, 200, { logged: false });
+      return next();
+    }
+
+    jwt.verify(token, process.env.TOKEN_SECRET, (err) => {
+      if (err) {
+        console.log(err);
+        sendResponse(res, 200, { logged: false });
+        return next();
+      }
+
+      sendResponse(res, 200, { logged: true });
+      return next();
+    });
+  } catch (e) {
+    console.error(e);
+    sendResponse(res, 500, {
+      status: "error",
+      serverMessage: e.message,
+      clientMessage: "Ocorreu um erro no servidor",
+      logged: false,
+    });
     return next();
   }
 };

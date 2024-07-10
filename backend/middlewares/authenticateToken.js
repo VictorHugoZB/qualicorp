@@ -17,9 +17,6 @@ function authenticateToken(req, res, next) {
   jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
     if (err) {
       console.log(err);
-    }
-
-    if (err) {
       sendResponse(res, 403, "FORBIDDEN");
       return;
     }

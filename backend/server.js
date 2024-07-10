@@ -3,10 +3,12 @@ require("dotenv").config();
 const restify = require("restify");
 const driver = require("./neo4j/driver");
 const authenticateToken = require("./middlewares/authenticateToken");
+var cors = require("cors");
 
 const server = restify.createServer();
 const port = 3001;
 
+server.use(cors());
 server.use(restify.plugins.bodyParser());
 server.use(restify.plugins.queryParser());
 server.use(authenticateToken);

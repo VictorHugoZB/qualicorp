@@ -7,6 +7,7 @@ const signRoutes = require("./src/sign");
 module.exports.sign = function (server) {
   server.post("/signin", signRoutes.signin);
   server.post("/signup", signRoutes.signup);
+  server.post("/validate-login", signRoutes.isLoggedIn);
 };
 
 // TODOS

@@ -17,7 +17,11 @@ module.exports.get = async (req, res, next) => {
     return next();
   } catch (e) {
     console.error(e);
-    sendResponse(res, 500, { status: "error", message: e.message });
+    sendResponse(res, 500, {
+      status: "error",
+      serverMessage: e.message,
+      clientMessage: "Ocorreu um erro no servidor.",
+    });
     return next();
   }
 };
@@ -31,7 +35,8 @@ module.exports.create = async (req, res, next) => {
     if (!title || !description) {
       sendResponse(res, 400, {
         status: "error",
-        message: "Título e descrição obrigatórios",
+        clientMessage: "Título e descrição obrigatórios",
+        serverMessage: "Título e descrição obrigatórios",
       });
       return next();
     }
@@ -60,7 +65,11 @@ module.exports.create = async (req, res, next) => {
     return next();
   } catch (e) {
     console.error(e);
-    sendResponse(res, 500, { status: "error", message: e.message });
+    sendResponse(res, 500, {
+      status: "error",
+      serverMessage: e.message,
+      clientMessage: "Ocorreu um erro no servidor.",
+    });
     return next();
   }
 };
@@ -75,7 +84,8 @@ module.exports.update = async (req, res, next) => {
     if (!title || !description || completed === undefined) {
       sendResponse(res, 400, {
         status: "error",
-        message: "Forneça os campos title, description e completed",
+        clientMessage: "Forneça os campos title, description e completed",
+        serverMessage: "Forneça os campos title, description e completed",
       });
       return next();
     }
@@ -83,7 +93,8 @@ module.exports.update = async (req, res, next) => {
     if (!id) {
       sendResponse(res, 400, {
         status: "error",
-        message: "ID do todo não foi passado",
+        clientMessage: "ID do todo não foi passado",
+        serverMessage: "ID do todo não foi passado",
       });
       return next();
     }
@@ -113,7 +124,11 @@ module.exports.update = async (req, res, next) => {
     return next();
   } catch (e) {
     console.error(e);
-    sendResponse(res, 500, { status: "error", message: e.message });
+    sendResponse(res, 500, {
+      status: "error",
+      serverMessage: e.message,
+      clientMessage: "Ocorreu um erro no servidor.",
+    });
     return next();
   }
 };
@@ -127,7 +142,8 @@ module.exports.delete = async (req, res, next) => {
     if (!id) {
       sendResponse(res, 400, {
         status: "error",
-        message: "ID do todo não foi passado",
+        clientMessage: "ID do todo não foi passado",
+        serverMessage: "ID do todo não foi passado",
       });
       return next();
     }
@@ -146,7 +162,11 @@ module.exports.delete = async (req, res, next) => {
     return next();
   } catch (e) {
     console.error(e);
-    sendResponse(res, 500, { status: "error", message: e.message });
+    sendResponse(res, 500, {
+      status: "error",
+      serverMessage: e.message,
+      clientMessage: "Ocorreu um erro no servidor.",
+    });
     return next();
   }
 };
