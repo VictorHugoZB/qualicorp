@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const driver = require("../../neo4j/driver");
 const jwt = require("jsonwebtoken");
+const sendResponse = require("../sendResponse");
 
 function generateAccessToken(username) {
   return jwt.sign({ username }, process.env.TOKEN_SECRET, {
@@ -9,9 +10,13 @@ function generateAccessToken(username) {
   });
 }
 
-module.exports.signin = async (req, res) => {
+module.exports.signin = async (req, res, next) => {
   if (!req.body.username || !req.body.password) {
-    return res.send({ error: "Campos obrigatórios não fornecidos" });
+    sendResponse(res, 400, {
+      status: "error",
+      message: "Campos obrigatórios não fornecidos",
+    });
+    return next();
   }
 
   const { username, password } = req.body;
@@ -22,9 +27,11 @@ module.exports.signin = async (req, res) => {
   );
 
   if (!records.length) {
-    return res
-      .status(404)
-      .send({ status: "error", message: "Usuário não encontrado" });
+    sendResponse(res, 404, {
+      status: "error",
+      message: "Usuário não encontrado",
+    });
+    return next();
   }
 
   const hash = records[0].get("password");
@@ -34,51 +41,60 @@ module.exports.signin = async (req, res) => {
     .then((correct) => {
       if (correct) {
         const token = generateAccessToken(username);
-        res
-          .status(200)
-          .send({ status: "sucess", message: "Login efetuado", token });
+        sendResponse(res, 200, {
+          status: "sucess",
+          message: "Login efetuado",
+          token,
+        });
       } else {
-        res
-          .status(401)
-          .send({ status: "error", message: "Credenciais inválidas" });
+        sendResponse(res, 401, {
+          status: "error",
+          message: "Credenciais inválidas",
+        });
       }
+      return next();
     })
     .catch((e) => {
-      res.status(500).send({ status: "error", message: e.message });
+      sendResponse(res, 500, { status: "error", message: e.message }, res);
+      return next();
     });
 };
 
-module.exports.signup = async (req, res) => {
+module.exports.signup = async (req, res, next) => {
   try {
     if (!req.body.username || !req.body.password || !req.body.confirmPassword) {
-      return res.status(400).send({
+      sendResponse(res, 400, {
         status: "error",
         message: "Campos obrigatórios não fornecidos",
       });
+      return next();
     }
 
     const { username, password, confirmPassword } = req.body;
 
     if (!username.match(/^[a-z_]+$/)) {
-      return res.status(400).send({
+      sendResponse(res, 400, {
         status: "error",
         message:
           "Somente letras minúsculas e underline permitidos no nome de usuário",
       });
+      return next();
     }
 
     if (password.length < 6) {
-      return res.status(400).send({
+      sendResponse(res, 400, {
         status: "error",
         message: "A senha deve possuir no mínimo 6 caracteres",
       });
+      return next();
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).send({
+      sendResponse(res, 400, {
         status: "error",
         message: "Senha e confirmação de senha são diferentes",
       });
+      return next();
     }
 
     const { records } = await driver.executeQuery(
@@ -87,10 +103,11 @@ module.exports.signup = async (req, res) => {
     );
 
     if (records.length) {
-      return res.status(409).send({
+      sendResponse(res, 409, {
         status: "error",
         message: "Usuário com esse nome já existe",
       });
+      return next();
     }
 
     const hashedPass = await bcrypt.hash(password, saltRounds);
@@ -105,14 +122,15 @@ module.exports.signup = async (req, res) => {
 
     const token = generateAccessToken(username);
 
-    res.status(200).send({
+    sendResponse(res, 200, {
       status: "success",
       message: "Usuário criado com sucesso",
-      username: user.username,
       token,
     });
+    return next();
   } catch (e) {
     console.error(e);
-    res.status(500).send({ status: "error", message: e.message });
+    sendResponse(res, 500, { status: "error", message: e.message });
+    return next();
   }
 };

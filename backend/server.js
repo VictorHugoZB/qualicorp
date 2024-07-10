@@ -1,27 +1,29 @@
 require("dotenv").config();
 
-const express = require("express");
-const routes = require("./routes");
+const restify = require("restify");
 const driver = require("./neo4j/driver");
 const authenticateToken = require("./middlewares/authenticateToken");
 
-const app = express();
+const server = restify.createServer();
 const port = 3001;
 
-app.use(express.json());
-app.use("/todo", authenticateToken);
-app.use(routes);
+server.use(restify.plugins.bodyParser());
+server.use(restify.plugins.queryParser());
+server.use(authenticateToken);
+
+require("./routes").sign(server);
+require("./routes").todo(server);
 
 driver
   .getServerInfo()
   .then(() => {
     console.log("Conexão neo4j estabelecida");
-    app.emit("ready");
+    server.emit("ready");
   })
   .catch((e) => console.error(e));
 
-app.on("ready", () => {
-  app.listen(port, () => {
-    console.log(`Servidor rodando na porta ${port}`);
+server.on("ready", () => {
+  server.listen(port, function () {
+    console.log("Servidor rodando na porta", port);
   });
 });

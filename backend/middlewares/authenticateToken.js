@@ -1,16 +1,27 @@
 const jwt = require("jsonwebtoken");
 
 function authenticateToken(req, res, next) {
-  console.log("MIDDLEWARE");
+  if (!req.path().startsWith("/todo")) {
+    return next();
+  }
+
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token == null) return res.sendStatus(401);
+  if (token == null) {
+    res.status(401);
+    res.send("UNAUTHORIZED");
+    return;
+  }
 
   jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
     console.log(err);
 
-    if (err) return res.sendStatus(403);
+    if (err) {
+      res.status(403);
+      res.send("FORBIDDEN");
+      return;
+    }
 
     req.user = user;
 
