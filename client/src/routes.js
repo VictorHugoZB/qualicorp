@@ -2,8 +2,10 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import Signin from "./components/sign/Signin.vue";
 import Signup from "./components/sign/Signup.vue";
-import HelloWorld from "./components/HelloWorld.vue";
 import store from "./store";
+import EditTodo from "./components/Todos/EditTodo.vue";
+import AddTodo from "./components/Todos/AddTodo.vue";
+import Home from "./components/Home.vue";
 
 Vue.use(VueRouter);
 
@@ -21,7 +23,17 @@ const routes = [
   {
     path: "/",
     name: "Home",
-    component: HelloWorld,
+    component: Home,
+  },
+  {
+    path: "/edit/todo/:id",
+    name: "EditTodo",
+    component: EditTodo,
+  },
+  {
+    path: "/add/todo",
+    name: "AddTodo",
+    component: AddTodo,
   },
 ];
 
@@ -41,10 +53,10 @@ router.beforeEach(async (to, from, next) => {
     } else {
       return next();
     }
-  }
-
-  if (to.name === "Home" && !isLoggedIn) {
-    return next({ name: "Signin" });
+  } else {
+    if (!isLoggedIn) {
+      return next({ name: "Signin" });
+    }
   }
 
   return next();

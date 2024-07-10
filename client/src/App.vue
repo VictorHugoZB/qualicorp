@@ -16,6 +16,10 @@
     <v-main>
       <router-view />
     </v-main>
+
+    <v-btn fab fixed bottom right color="primary" @click="addButton"
+      ><v-icon large>mdi-plus</v-icon></v-btn
+    >
   </v-app>
 </template>
 
@@ -41,6 +45,9 @@ export default {
       this.setToken(null);
 
       this.$router.push("/signin");
+    },
+    addButton() {
+      this.$router.push("/add/todo");
     },
   },
 };

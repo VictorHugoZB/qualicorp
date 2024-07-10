@@ -13,6 +13,7 @@ module.exports.sign = function (server) {
 // TODOS
 module.exports.todo = function (server) {
   server.get("/todo", todoRoutes.get);
+  server.get("/todo/:id", todoRoutes.getById);
   server.post("/todo", todoRoutes.create);
   server.put("/todo/:id", todoRoutes.update);
   server.del("/todo/:id", todoRoutes.delete);

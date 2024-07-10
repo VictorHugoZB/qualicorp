@@ -26,6 +26,41 @@ module.exports.get = async (req, res, next) => {
   }
 };
 
+// READ
+module.exports.getById = async (req, res, next) => {
+  try {
+    const { username } = req.user;
+    const { id } = req.params;
+
+    const { records } = await driver.executeQuery(
+      "MATCH (u:User {username: $username})-[:CREATED]->(t:Todo {id: $id}) RETURN t",
+      { username, id }
+    );
+
+    if (!records.length) {
+      sendResponse(res, 500, {
+        status: "error",
+        serverMessage: "Não foi encontrado o Todo",
+        clientMessage: "Não foi encontrado o Todo",
+      });
+      return next();
+    }
+
+    const todo = records[0].get("t").properties;
+
+    sendResponse(res, 200, { status: "success", payload: todo });
+    return next();
+  } catch (e) {
+    console.error(e);
+    sendResponse(res, 500, {
+      status: "error",
+      serverMessage: e.message,
+      clientMessage: "Ocorreu um erro no servidor.",
+    });
+    return next();
+  }
+};
+
 // CREATE
 module.exports.create = async (req, res, next) => {
   try {
@@ -80,6 +115,8 @@ module.exports.update = async (req, res, next) => {
     const { title, description, completed } = req.body;
     const { id } = req.params;
     const { username } = req.user;
+
+    console.log({ title, description, completed });
 
     if (!title || !description || completed === undefined) {
       sendResponse(res, 400, {
