@@ -70,6 +70,7 @@ module.exports.update = async (req, res, next) => {
   try {
     const { title, description, completed } = req.body;
     const { id } = req.params;
+    const { username } = req.user;
 
     if (!title || !description || completed === undefined) {
       sendResponse(res, 400, {
@@ -89,7 +90,7 @@ module.exports.update = async (req, res, next) => {
 
     const { records } = await driver.executeQuery(
       `
-      MATCH (t:Todo { id: $id })
+      MATCH (t:Todo {id: $id})-[r]-(u:User {username: $username})
       SET t.title = $title,
           t.description = $description,
           t.completed = $completed
@@ -100,6 +101,7 @@ module.exports.update = async (req, res, next) => {
         title,
         description,
         completed,
+        username,
       }
     );
 
@@ -119,8 +121,8 @@ module.exports.update = async (req, res, next) => {
 // DELETE
 module.exports.delete = async (req, res, next) => {
   try {
-    const session = driver.session({ database: "neo4j" });
     const { id } = req.params;
+    const { username } = req.user;
 
     if (!id) {
       sendResponse(res, 400, {
@@ -130,21 +132,12 @@ module.exports.delete = async (req, res, next) => {
       return next();
     }
 
-    const transaction = await session.beginTransaction();
-
-    await transaction.run(
-      `MATCH (t:Todo {id: $id})-[r]-()
-       DELETE r`,
-      { id }
-    );
-
-    await transaction.run(
-      `MATCH (t:Todo {id: $id})
+    await driver.executeQuery(
+      `MATCH (t:Todo {id: $id})-[r]-(u:User {username: $username})
+       DELETE r
        DELETE t`,
-      { id }
+      { id, username }
     );
-
-    await transaction.commit();
 
     sendResponse(res, 200, {
       status: "success",

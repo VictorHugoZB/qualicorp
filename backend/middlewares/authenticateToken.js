@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const sendResponse = require("../src/sendResponse");
 
 function authenticateToken(req, res, next) {
   if (!req.path().startsWith("/todo")) {
@@ -9,17 +10,17 @@ function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(" ")[1];
 
   if (token == null) {
-    res.status(401);
-    res.send("UNAUTHORIZED");
+    sendResponse(res, 401, "UNAUTHORIZED");
     return;
   }
 
   jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-    console.log(err);
+    if (err) {
+      console.log(err);
+    }
 
     if (err) {
-      res.status(403);
-      res.send("FORBIDDEN");
+      sendResponse(res, 403, "FORBIDDEN");
       return;
     }
 
