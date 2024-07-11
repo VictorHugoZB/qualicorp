@@ -15,4 +15,4 @@ Observação: O arquivo **.env do backend** foi **mantido no github de forma pro
 
 Executar o backend: no diretório backend, rodar `npm install` e em seguida `npm start`
 
-Executar o frontend: no diretório client, rodar `npm install`, `npm build` e, em seguida, `npm start`.
+Executar o frontend: no diretório client, rodar `npm install` e em seguida `npm run serve`.
